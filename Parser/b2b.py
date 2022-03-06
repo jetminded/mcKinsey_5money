@@ -17,18 +17,16 @@ def get_category_id(name):
 
 def get_links_to_sellers_by_category_id(cat_id):
     is_there_more = True
-    current_from = 2120
+    current_from = 0
     links = []
     while is_there_more:
         time.sleep(2)
         is_there_more = False
         url = f"https://www.b2b-center.ru/firms/?show=sellers&cat_id={cat_id}&from={current_from}"
-        print(url)
         page = requests.get(url, headers={
             'User-Agent': USER_AGENT,
             'Referer': "https://www.b2b-center.ru/firms/?show=sellers"
         })
-        print("Page status: ", page.status_code)
         soup = BeautifulSoup(page.text, "html.parser")
         sellers = soup.find_all('a', class_='visited')
         if sellers:
@@ -49,10 +47,10 @@ def get_inns_by_category(name):
             'User-Agent': USER_AGENT,
             'Referer': f"https://www.b2b-center.ru/firms/?show=sellers&cat_id={cat_id}"
         })
-        print("Page status: ", page.status_code)
         soup = BeautifulSoup(page.text, "html.parser")
         sellers = soup.find_all('td')
         for i in range(len(sellers) - 1):
             if sellers[i].text == 'ИНН':
                 inns.append(int(sellers[i + 1].text))
+                print(int(sellers[i + 1].text))
     return inns

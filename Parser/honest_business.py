@@ -47,7 +47,6 @@ def data_from_main_page(url, inn):
         rating = soup.find('span', class_='box-rating')
         current_data.append(['rating', rating.find('b').text])
     except:
-        print("lol")
         return []
     return current_data
 
