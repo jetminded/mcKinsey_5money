@@ -12,12 +12,13 @@ USER_AGENT = 'Mozilla/5.0'
 # Возвращаемое значение - айдишник категории
 # ToDo написать нормальное отображение, пока оно просто считает, что все болты свободные
 def get_category_id(name):
-    return 42714840
+    if name == 'metalware':
+        return 42714840
 
 
-def get_links_to_sellers_by_category_id(cat_id):
+def get_links_to_sellers_by_category_id(cat_id, offset):
     is_there_more = True
-    current_from = 0
+    current_from = offset
     links = []
     while is_there_more:
         time.sleep(2)
@@ -37,10 +38,10 @@ def get_links_to_sellers_by_category_id(cat_id):
     return links
 
 
-def get_inns_by_category(name):
+def get_inns_by_category(name, offset):
     inns = []
     cat_id = get_category_id(name)
-    all_links = get_links_to_sellers_by_category_id(cat_id)
+    all_links = get_links_to_sellers_by_category_id(cat_id, offset)
     for url in all_links:
         time.sleep(2)
         page = requests.get("https://www.b2b-center.ru" + url, headers={
