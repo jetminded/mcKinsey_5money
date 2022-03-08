@@ -25,3 +25,5 @@ def parse_category(name):
         pickle.dump(result, f)
     return result
 
+
+print(len(parse_category("")))
