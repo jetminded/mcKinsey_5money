@@ -1,23 +1,27 @@
+"""
+Парсер сайта https://zachestnyibiznes.ru/
+"""
+import time
 from bs4 import BeautifulSoup
 from phantomjs import Phantom
 import requests
-import time
 
 
 # Константа для корректной работы
 USER_AGENT = 'Mozilla/5.0'
 
 
-# Находит ссылки на страницы всех организаций с данным ИНН
-# Аргумент - ИНН
-# Возвращает массив ссылок
-def get_links_by_inn(inn):
+def get_links_by_inn(inn) -> []:
+    """
+    Находит ссылки на страницы всех организаций с данным ИНН
+    Аргумент - ИНН
+    Возвращает список ссылок
+    """
     time.sleep(2)
     url = f"https://zachestnyibiznes.ru/search?query={inn}"
     page = requests.get(url, headers={
         'User-Agent': USER_AGENT,
         'Referer': 'https://zachestnyibiznes.ru/'})
-    print("Page status: ", page.status_code)
     soup = BeautifulSoup(page.text, "html.parser")
     all_organizations = soup.find_all('div', class_="m-t-25")
     links = []
@@ -27,10 +31,12 @@ def get_links_by_inn(inn):
     return links
 
 
-# Получает информацию с главной стрицы (название, инн, рейтинг, статус)
-# Аргументы - ссылка на главную стриницу, ИНН
-# Возвращает массив пар вида "имя параметра" - "значение"
-def data_from_main_page(url, inn):
+def data_from_main_page(url, inn) -> []:
+    """
+    Получает информацию с главной стрицы (название, инн, рейтинг, статус)
+    Аргументы - ссылка на главную стриницу, ИНН
+    Возвращает список пар вида "имя параметра" - "значение"
+    """
     time.sleep(2)
     phantom = Phantom()
     conf = {
@@ -137,15 +143,17 @@ def data_from_main_page(url, inn):
     try:
         rating = soup.find('span', class_='box-rating')
         current_data.append(['rating', rating.find('b').text])
-    except:
+    except (AttributeError, TypeError, ValueError):
         return []
     return current_data
 
 
-# Получает информацию о финансовом отчете компании
-# Аргумент - ссылка на основную страницу компании
-# Возвращает массив пар вида "имя параметра" - "значение"
-def data_from_finance_page(url):
+def data_from_finance_page(url) -> []:
+    """
+    Получает информацию о финансовом отчете компании
+    Аргумент - ссылка на основную страницу компании
+    Возвращает список пар вида "имя параметра" - "значение"
+    """
     time.sleep(2)
     phantom = Phantom()
     conf = {
@@ -168,12 +176,12 @@ def data_from_finance_page(url):
             key = data.find(text=True)
             key = key.replace("\n", '')
             key = key.replace(u'\xa0', '')
-            if key != "Внимание:" and key != "Финансовый анализ":
+            if key not in ('Внимание:', 'Финансовый анализ'):
                 try:
                     current_data.append([key, float(data.find('span').text)])
-                except:
+                except (AttributeError, ValueError, TypeError):
                     current_data.append([key, float(0)])
-    except:
+    except (AttributeError, ValueError, TypeError):
         pass
     try:
         finance_reporting = soup.find(id='fin-stat-fns')
@@ -188,12 +196,15 @@ def data_from_finance_page(url):
                     for k in range(1, len(info)):
                         value = info[k].text.replace('\n', '')
                         current_data.append([prefix + info[k]['data-th'].replace(':', ''), value])
-    except:
+    except (AttributeError, ValueError, TypeError):
         pass
     return current_data
 
 
-def data_from_purchases_page(url):
+def data_from_purchases_page(url) -> []:
+    """
+    Информация со страницы закупок
+    """
     time.sleep(2)
     phantom = Phantom()
     conf = {
@@ -211,13 +222,16 @@ def data_from_purchases_page(url):
     soup = BeautifulSoup(page, 'html.parser')
     try:
         provider = soup.find('p', class_='lead').text.split(' ')
-    except:
+    except (AttributeError, ValueError, TypeError):
         provider = [0]
     current_data.append(['provider', provider[len(provider) - 1]])
     return current_data
 
 
-def data_from_important_facts_page(url):
+def data_from_important_facts_page(url) -> []:
+    """
+    Получение информации со страницы важных фактов
+    """
     time.sleep(2)
     phantom = Phantom()
     conf = {
@@ -239,7 +253,7 @@ def data_from_important_facts_page(url):
         for fact in facts:
             if fact.find(class_='text-dark-success'):
                 current_data.append(['Положительный факт: ' + fact.find(class_='text-dark-success').text,
-                                    fact.find(class_='text-dark-grey').text])
+                                     fact.find(class_='text-dark-grey').text])
             else:
                 tmp = fact.find(class_='text-danger')
                 if not tmp:
@@ -253,10 +267,12 @@ def data_from_important_facts_page(url):
     return current_data
 
 
-# Находит всю информацию о компаниях с данным ИНН
-# Единственный параметр - инн в формате числа
-# Возвращает список с информацией о каждой компании с данным ИНН
-def get_data_by_inn(inn):
+def get_data_by_inn(inn) -> []:
+    """
+    Находит всю информацию о компаниях с данным ИНН
+    Единственный параметр - инн в формате числа
+    Возвращает список с информацией о каждой компании с данным ИНН
+    """
     links = get_links_by_inn(inn)
     result = []
     for url in links:
