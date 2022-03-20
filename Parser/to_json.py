@@ -33,16 +33,21 @@ def convert_to_dict(inp):
     return result
 
 
-with open('data/metalware_data.pickle', 'rb') as f:
+with open('data/rubber_data.pickle', 'rb') as f:
     data = pickle.load(f)
 print(len(data))
 data = convert_to_dict(data)
+c = 0
 for el in data:
-    el = get_finance_info(el)
-    el = get_experience_info(el)
-    el = get_juridical_info(el)
-    el['rating'] = 0.5 * el['finance_total'] + 0.3 * el['juridical_total'] \
+    if el['status'] == 'Действующее' and el["Реестр недобросовестных поставщиков"] == "Не числится":
+        el = get_finance_info(el)
+        el = get_experience_info(el)
+        el = get_juridical_info(el)
+        el['rating'] = 0.5 * el['finance_total'] + 0.3 * el['juridical_total'] \
                    + 0.2 * el['experience_total']
+    else:
+        c += 1
+print(c)
 
 # with open("rubber_data_file.json", "w") as write_file:
 #     json.dump(data, write_file, ensure_ascii=False)
